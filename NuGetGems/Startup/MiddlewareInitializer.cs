@@ -5,9 +5,6 @@ public static class MiddlewareInitializer
     public static WebApplication ConfigureMiddleware(this WebApplication app)
     {
         ConfigureSwagger(app);
-
-
-
         app.UseHttpsRedirection();
 
         return app;

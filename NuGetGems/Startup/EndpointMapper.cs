@@ -1,4 +1,7 @@
-﻿using BenchmarkDotNet.Running;
+﻿
+using Forge.OpenAI.Interfaces.Services;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using NugetGems;
 using NugetGems.POCO;
 using NuGetGems.NugetGems;
@@ -16,32 +19,50 @@ public static partial class EndpointMapper
 
     public static WebApplication MapEndPoints(this WebApplication app)
     {
-        app.MapGet("/demystify", (bool enabled = true) => {
-            var demystify = new DemystifyExamples();
+        app.MapPost("/chatgpt", async (string? option, string searchTerm) => {
 
-            if (enabled) {
-                return demystify.DemystifyException();
+            var chatGPTExamples = new ChatGPTExamples();
+
+            if (option == "1") {
+                return await chatGPTExamples.OpenAIAPIExamples(searchTerm);
+            }
+            else if (option == "2") {
+                IOpenAIService openAi = app.Services.GetService<IOpenAIService>();
+                return await chatGPTExamples.ForgeOpenAIExamples(openAi, searchTerm);
             }
 
-            return demystify.NormalException();
+
+            return await chatGPTExamples.BetalgoExamples(searchTerm);
+
+        });
+
+        app.MapPost("/demystify", async (bool enabled) => {
+            var demystify = new DemystifyExamples();
+            if (enabled) {
+                return await demystify.DemystifyException();
+            }
+
+            return await demystify.NormalException();
         });
 
         app.MapGet("/nodatime", () => {
+
             var nodatime = new NodatimeExamples();
             return nodatime.Examples();
         });
 
-        app.MapGet("/guardclauseexamples", () => {
+        app.MapGet("/guardclause", () => {
+
             var guardClauseExamples = new GuardClausesExamples();
 
             var exampleObject = new MyObject();
-
             guardClauseExamples.Examples(exampleObject);
 
             return true;
         });
 
         app.MapPost("/fusioncache", () => {
+
             var fusionCacheExample = new FusionCacheExamples();
             return fusionCacheExample.Examples();
         });
@@ -51,10 +72,23 @@ public static partial class EndpointMapper
             var oneOfExample = new OneOfExamples();
             var exampleObject = new MyObject();
 
-            if (enabled) {
-                return oneOfExample.Examples(exampleObject);
-            }
-            return oneOfExample.Examples().ToString();
+            var createUserResult = oneOfExample.Examples(exampleObject);
+
+            string myTest = createUserResult.Match(
+               myObj => myObj.Name,
+               name => name
+            );
+
+            if (createUserResult.IsT0) { }
+            if (createUserResult.IsT1) { }
+
+            var test = createUserResult.AsT0 ?? throw new ArgumentException();;
+
+            createUserResult.Switch(
+                x => oneOfExample.Examples(),
+                y => oneOfExample.Examples());
+
+
         });
 
         app.MapPost("/humanizer", (int caseNumber = 1) => {

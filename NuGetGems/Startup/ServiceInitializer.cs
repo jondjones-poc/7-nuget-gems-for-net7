@@ -1,4 +1,7 @@
-﻿namespace NuGetGems;
+﻿using Forge.OpenAI;
+using NuGetGems.Startup;
+
+namespace NuGetGems;
 
 public static partial class ServiceInitializer
 {
@@ -7,6 +10,10 @@ public static partial class ServiceInitializer
     {
         services.AddMemoryCache();
         services.AddFusionCache();
+
+        services.AddForgeOpenAI(options => {
+            options.AuthenticationInfo = MyStringHelper.MY_API_KEY;
+        });
 
         RegisterSwagger(services);
         return services;

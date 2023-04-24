@@ -9,9 +9,16 @@ public class FlurlExamples {
 
     public async Task<string> Examples()
     {
+        using (var client = new FlurlClient("https://api.chucknorris.io")) {
+            var post = await client
+                        .Request("jokes/random")
+                        .GetJsonAsync<Joke>();
+        }
+
         var joke = await "https://api.chucknorris.io"
-            .AppendPathSegment("jokes/random")
-            .GetJsonAsync<Joke>();
+                .AppendPathSegment("jokes/random")
+                .ConfigureRequest(settings => settings.Timeout = TimeSpan.FromSeconds(1))
+                .GetJsonAsync<Joke>();
 
         return joke.Value;
     }
